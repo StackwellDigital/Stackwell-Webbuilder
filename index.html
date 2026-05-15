@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stackwell Site Builder</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    .builder-wrapper {
+      display: grid;
+      grid-template-columns: 300px 1fr 1fr;
+      height: 100vh;
+      gap: 0;
+    }
+    
+    .sidebar {
+      background: #ffffff;
+      border-right: 1px solid #ddd;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .sidebar-tabs {
+      display: flex;
+      border-bottom: 1px solid #ddd;
+      gap: 0;
+      background: #fafafa;
+    }
+    
+    .tab-btn {
+      flex: 1;
+      padding: 0.75rem;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 500;
+      background: transparent;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    
+    .tab-btn.active {
+      color: #0a0a0a;
+      border-bottom-color: #0a0a0a;
+    }
+    
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 1rem;
+    }
+    
+    .section-item {
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
+      border: 1px solid #ddd;
+      background: #ffffff;
+      cursor: move;
+      font-size: 13px;
+      border-radius: 4px;
+      transition: all 0.2s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+    
+    .section-item:hover {
+      background: #f9f9f9;
+      border-color: #bbb;
+    }
+    
+    .section-item.selected {
+      border-color: #0a0a0a;
+      background: #f0f0f0;
+      font-weight: 500;
+    }
+    
+    .section-item.dragging {
+      opacity: 0.5;
+    }
+    
+    .drag-handle {
+      cursor: grab;
+      color: #999;
+      font-size: 12px;
+      user-select: none;
+    }
+    
+    .section-item button {
+      background: none;
+      border: none;
+      color: #999;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0;
+      margin-left: 0.5rem;
+    }
+    
+    .section-item button:hover {
+      color: #d32f2f;
+    }
+    
+    .template-btn {
+      width: 100%;
+      text-align: left;
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
+      background: #ffffff;
+      border: 1px solid #ddd;
+      color: #333;
+      font-size: 12px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    
+    .template-btn:hover {
+      background: #f9f9f9;
+      border-color: #0a0a0a;
+    }
+    
+    .sidebar-footer {
+      padding: 1rem;
+      border-top: 1px solid #ddd;
+    }
+    
+    .export-btn {
+      width: 100%;
+      padding: 0.75rem;
+      background: #0a0a0a;
+      color: white;
+      border: none;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 13px;
+      border-radius: 4px;
+    }
+    
+    .export-btn:hover {
+      background: #1a1a1a;
+    }
+    
+    .editor-panel {
+      background: #ffffff;
+      border-right: 1px solid #ddd;
+      overflow-y: auto;
+      padding: 1.5rem 1rem;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .editor-section {
+      margin-bottom: 2rem;
+    }
+    
+    .editor-section label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #666;
+      margin-bottom: 0.5rem;
+    }
+    
+    .editor-section input,
+    .editor-section textarea,
+    .editor-section select {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 13px;
+      border: 1px solid #ddd;
+      background: #fafafa;
+      color: #333;
+      margin-bottom: 0.75rem;
+      font-family: inherit;
+      border-radius: 4px;
+    }
+    
+    .editor-section input:focus,
+    .editor-section textarea:focus,
+    .editor-section select:focus {
+      outline: none;
+      border-color: #0a0a0a;
+      background: #ffffff;
+    }
+    
+    .editor-section textarea {
+      min-height: 100px;
+      resize: vertical;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+    
+    .color-picker-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .color-input-group {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .color-input-group label {
+      font-size: 11px;
+      margin-bottom: 0.25rem;
+    }
+    
+    .color-input-group input {
+      margin-bottom: 0;
+      height: 36px;
+      cursor: pointer;
+    }
+    
+    .spacing-group {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .btn-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    
+    .btn-group button {
+      flex: 1;
+      padding: 0.65rem;
+      font-size: 12px;
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+      color: #333;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    
+    .btn-group button:hover {
+      background: #eeeeee;
+      border-color: #0a0a0a;
+    }
+    
+    .btn-group button.delete {
+      background: #ffebee;
+      border-color: #d32f2f;
+      color: #d32f2f;
+    }
+    
+    .btn-group button.delete:hover {
+      background: #ffcdd2;
+    }
+    
+    .preview-pane {
+      overflow: auto;
+      padding: 2rem;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      background: #f5f5f5;
+    }
+    
+    .preview-iframe {
+      width: 100%;
+      max-width: 1200px;
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 4px;
+      min-height: 400px;
+    }
+    
+    .css-toggle {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      margin-bottom: 1rem;
+    }
+    
+    .css-toggle input {
+      margin-right: 0.5rem;
+      cursor: pointer;
+      width: auto;
+      margin-bottom: 0;
+    }
+    
+    .css-editor-content {
+      display: none;
+      margin-bottom: 1.5rem;
+    }
+    
+    .css-editor-content.open {
+      display: block;
+    }
+    
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal-overlay.open {
+      display: flex;
+    }
+    
+    .modal {
+      background: white;
+      border-radius: 8px;
+      padding: 2rem;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+    
+    .modal h2 {
+      margin-bottom: 1rem;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .modal p {
+      margin-bottom: 1rem;
+      color: #666;
+      font-size: 14px;
+    }
+    
+    .modal-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+    }
+    
+    .modal-buttons button {
+      flex: 1;
+      padding: 0.75rem;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+      font-weight: 500;
+      font-size: 13px;
+    }
+    
+    .modal-buttons button.primary {
+      background: #0a0a0a;
+      color: white;
+    }
+    
+    .modal-buttons button.primary:hover {
+      background: #1a1a1a;
+    }
+    
+    .modal-buttons button.secondary {
+      background: #f5f5f5;
+      color: #333;
+      border: 1px solid #ddd;
+    }
+    
+    .modal-buttons button.secondary:hover {
+      background: #eeeeee;
+    }
+    
+    .empty-state {
+      color: #999;
+      text-align: center;
+      padding: 2rem 1rem;
+      font-size: 13px;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #999;
+    }
+  </style>
+</head>
+<body>
+
+<div class="builder-wrapper">
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-tabs">
+      <button class="tab-btn active" data-tab="sections">Sections</button>
+      <button class="tab-btn" data-tab="templates">Templates</button>
+    </div>
+    
+    <div class="sidebar-content">
+      <div id="sectionsTab">
+        <div id="sectionsContainer"></div>
+      </div>
+      <div id="templatesTab" style="display:none;">
+        <div id="templatesContainer"></div>
+      </div>
+    </div>
+    
+    <div class="sidebar-footer">
+      <button class="export-btn" id="uploadBtn" style="margin-bottom: 0.5rem; background: #1a1a1a;">Upload HTML</button>
+      <button class="export-btn" id="downloadBtn">Download HTML</button>
+      <input type="file" id="fileInput" accept=".html" style="display: none;" />
+    </div>
+  </div>
+
+  <!-- CENTER PANEL: EDITOR -->
+  <div class="editor-panel">
+    <div id="editorContainer" class="empty-state">Select a section to edit</div>
+  </div>
+
+  <!-- RIGHT PANE: PREVIEW -->
+  <div class="preview-pane">
+    <iframe id="previewFrame" class="preview-iframe" sandbox="allow-same-origin"></iframe>
+  </div>
+</div>
+
+<!-- TEMPLATE MODAL -->
+<div class="modal-overlay" id="templateModal">
+  <div class="modal">
+    <h2 id="modalTitle">Add New Section</h2>
+    <p id="modalContent">This will add a new section to your page.</p>
+    <div class="modal-buttons">
+      <button class="primary" id="modalAddBtn">Add Section</button>
+      <button class="secondary" id="modalCloseBtn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const builder = {
+  html: '',
+  selectedSection: null,
+  sections: [],
+  draggedItem: null,
+  currentTemplateIdx: null,
+  
+  templates: [
+    {
+      name: 'Hero Section',
+      html: `<section id="hero-new" style="padding: 5rem 2rem; background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%); color: white; text-align: center;">
+        <h1 style="font-size: 3rem; margin-bottom: 1rem;">Your Headline Here</h1>
+        <p style="font-size: 1.2rem; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">Add your compelling subheadline and call to action here.</p>
+        <button style="padding: 0.75rem 2rem; background: white; color: #0a0a0a; border: none; font-size: 1rem; cursor: pointer; border-radius: 4px;">Get Started</button>
+      </section>`
+    },
+    {
+      name: 'Feature Grid',
+      html: `<section id="features-new" style="padding: 4rem 2rem; background: #f5f5f5;">
+        <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 3rem;">Our Features</h2>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; max-width: 1200px; margin: 0 auto;">
+          <div style="padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <h3 style="margin-bottom: 1rem;">Feature One</h3>
+            <p>Description of your feature and its benefits.</p>
+          </div>
+          <div style="padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <h3 style="margin-bottom: 1rem;">Feature Two</h3>
+            <p>Description of your feature and its benefits.</p>
+          </div>
+          <div style="padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <h3 style="margin-bottom: 1rem;">Feature Three</h3>
+            <p>Description of your feature and its benefits.</p>
+          </div>
+        </div>
+      </section>`
+    },
+    {
+      name: 'Two-Column Layout',
+      html: `<section id="two-col-new" style="padding: 4rem 2rem; max-width: 1200px; margin: 0 auto;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center;">
+          <div>
+            <h2 style="font-size: 2rem; margin-bottom: 1rem;">Left Column</h2>
+            <p style="line-height: 1.7; margin-bottom: 1rem;">Add your content here. This layout is perfect for pairing text with images.</p>
+            <p style="line-height: 1.7;">Include multiple paragraphs as needed.</p>
+          </div>
+          <div style="background: #e0e0e0; aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999;">Image or content here</div>
+        </div>
+      </section>`
+    },
+    {
+      name: 'CTA Section',
+      html: `<section id="cta-new" style="padding: 4rem 2rem; background: #0a0a0a; color: white; text-align: center;">
+        <h2 style="font-size: 2.5rem; margin-bottom: 1.5rem;">Ready to Get Started?</h2>
+        <p style="font-size: 1.1rem; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">Add your call-to-action message here.</p>
+        <button style="padding: 0.85rem 2.5rem; background: white; color: #0a0a0a; border: none; font-size: 1rem; cursor: pointer; border-radius: 4px; font-weight: 500;">Take Action</button>
+      </section>`
+    },
+    {
+      name: 'Testimonials',
+      html: `<section id="testimonials-new" style="padding: 4rem 2rem; background: #f5f5f5;">
+        <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 3rem;">What Clients Say</h2>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; max-width: 1200px; margin: 0 auto;">
+          <div style="padding: 2rem; background: white; border-radius: 8px; border-left: 4px solid #0a0a0a;">
+            <p style="margin-bottom: 1rem; font-style: italic;">"Great service and excellent support."</p>
+            <strong>— Client Name</strong>
+          </div>
+          <div style="padding: 2rem; background: white; border-radius: 8px; border-left: 4px solid #0a0a0a;">
+            <p style="margin-bottom: 1rem; font-style: italic;">"Couldn't ask for better results."</p>
+            <strong>— Client Name</strong>
+          </div>
+          <div style="padding: 2rem; background: white; border-radius: 8px; border-left: 4px solid #0a0a0a;">
+            <p style="margin-bottom: 1rem; font-style: italic;">"Highly recommend to anyone."</p>
+            <strong>— Client Name</strong>
+          </div>
+        </div>
+      </section>`
+    }
+  ],
+  
+  init() {
+    this.html = this.getBlankHTML();
+    this.parseHTML();
+    this.renderSidebar();
+    this.renderTemplates();
+    this.attachTabListeners();
+    this.updatePreview();
+  },
+  
+  parseHTML() {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(this.html, 'text/html');
+    
+    this.sections = [];
+    const sectionElements = doc.querySelectorAll('section');
+    
+    if (sectionElements.length === 0) {
+      this.sections = [{
+        id: 'main-' + Date.now(),
+        title: 'Main Content',
+        element: doc.body.innerHTML,
+        type: 'body'
+      }];
+    } else {
+      sectionElements.forEach((el, idx) => {
+        const title = el.querySelector('h1, h2, h3')?.textContent?.slice(0, 30) || `Section ${idx + 1}`;
+        this.sections.push({
+          id: el.id || `section-${idx}-${Date.now()}`,
+          title: title,
+          element: el.outerHTML,
+          type: 'section'
+        });
+      });
+    }
+  },
+  
+  renderSidebar() {
+    const container = document.getElementById('sectionsContainer');
+    if (this.sections.length === 0) {
+      container.innerHTML = '<div class="empty-state">No sections yet. Add one from Templates.</div>';
+      return;
+    }
+    container.innerHTML = this.sections.map((sec, idx) => 
+      `<div class="section-item" draggable="true" data-id="${sec.id}">
+        <span><span class="drag-handle">⋮</span> ${sec.title}</span>
+        <button onclick="builder.deleteSection('${sec.id}')" title="Delete">×</button>
+      </div>`
+    ).join('');
+    
+    container.querySelectorAll('.section-item').forEach(item => {
+      item.addEventListener('dragstart', (e) => {
+        this.draggedItem = item.dataset.id;
+        item.classList.add('dragging');
+      });
+      item.addEventListener('dragend', () => {
+        item.classList.remove('dragging');
+      });
+      item.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        item.style.opacity = '0.5';
+      });
+      item.addEventListener('dragleave', () => {
+        item.style.opacity = '1';
+      });
+      item.addEventListener('drop', (e) => {
+        e.preventDefault();
+        item.style.opacity = '1';
+        if (this.draggedItem && this.draggedItem !== item.dataset.id) {
+          this.reorderSections(this.draggedItem, item.dataset.id);
+        }
+      });
+      item.addEventListener('click', (e) => {
+        if (e.target.tagName !== 'BUTTON') {
+          container.querySelectorAll('.section-item').forEach(b => b.classList.remove('selected'));
+          item.classList.add('selected');
+          this.selectedSection = this.sections.find(s => s.id === item.dataset.id);
+          this.renderEditor();
+        }
+      });
+    });
+    
+    if (this.sections.length > 0 && !this.selectedSection) {
+      this.selectedSection = this.sections[0];
+      container.querySelector('.section-item')?.classList.add('selected');
+      this.renderEditor();
+    }
+  },
+  
+  reorderSections(fromId, toId) {
+    const fromIdx = this.sections.findIndex(s => s.id === fromId);
+    const toIdx = this.sections.findIndex(s => s.id === toId);
+    if (fromIdx > -1 && toIdx > -1) {
+      [this.sections[fromIdx], this.sections[toIdx]] = [this.sections[toIdx], this.sections[fromIdx]];
+      this.renderSidebar();
+      this.updatePreview();
+    }
+  },
+  
+  deleteSection(id) {
+    this.sections = this.sections.filter(s => s.id !== id);
+    if (this.selectedSection?.id === id) this.selectedSection = null;
+    this.renderSidebar();
+    this.updatePreview();
+  },
+  
+  renderTemplates() {
+    const container = document.getElementById('templatesContainer');
+    container.innerHTML = this.templates.map((t, idx) => 
+      `<button class="template-btn" onclick="builder.showTemplateModal(${idx})">${t.name}</button>`
+    ).join('');
+  },
+  
+  showTemplateModal(idx) {
+    this.currentTemplateIdx = idx;
+    const template = this.templates[idx];
+    document.getElementById('modalTitle').textContent = `Add: ${template.name}`;
+    document.getElementById('modalContent').textContent = 'This will add a new section to your page.';
+    document.getElementById('templateModal').classList.add('open');
+  },
+  
+  addTemplate() {
+    const template = this.templates[this.currentTemplateIdx];
+    const newId = 'section-' + Date.now();
+    this.sections.push({
+      id: newId,
+      title: template.name,
+      element: template.html,
+      type: 'section'
+    });
+    this.renderSidebar();
+    this.updatePreview();
+    document.getElementById('templateModal').classList.remove('open');
+  },
+  
+  renderEditor() {
+    if (!this.selectedSection) {
+      document.getElementById('editorContainer').innerHTML = '<div class="empty-state">Select a section to edit</div>';
+      return;
+    }
+    
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(this.selectedSection.element, 'text/html');
+    
+    const headings = doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    const paragraphs = doc.querySelectorAll('p');
+    const images = doc.querySelectorAll('img');
+    
+    let html = `
+      <div class="editor-section">
+        <label>Section Title</label>
+        <input type="text" id="sectionTitle" value="${this.selectedSection.title}" />
+      </div>
+    `;
+    
+    if (headings.length > 0) {
+      html += `<div class="editor-section"><label>Headings</label>`;
+      headings.forEach((h, idx) => {
+        html += `<input type="text" class="heading-input" data-idx="${idx}" value="${h.textContent}" />`;
+      });
+      html += `</div>`;
+    }
+    
+    if (paragraphs.length > 0) {
+      html += `<div class="editor-section"><label>Body Text</label>`;
+      paragraphs.forEach((p, idx) => {
+        html += `<textarea class="para-input" data-idx="${idx}">${p.textContent}</textarea>`;
+      });
+      html += `</div>`;
+    }
+    
+    if (images.length > 0) {
+      html += `<div class="editor-section"><label>Images</label>`;
+      images.forEach((img, idx) => {
+        html += `<label style="font-size:11px;">Image ${idx + 1} URL</label><input type="text" class="img-input" data-idx="${idx}" value="${img.src}" />`;
+      });
+      html += `</div>`;
+    }
+    
+    html += `
+      <div class="editor-section">
+        <label class="css-toggle">
+          <input type="checkbox" id="cssToggle" />
+          Custom CSS
+        </label>
+      </div>
+      <div id="cssEditorContent" class="css-editor-content">
+        <textarea id="customCSS" placeholder="/* Add custom CSS for this section */">${this.getCustomCSS()}</textarea>
+      </div>
+      
+      <div class="editor-section">
+        <label>Colors</label>
+        <div class="color-picker-row">
+          <div class="color-input-group">
+            <label>Background</label>
+            <input type="color" id="bgColor" value="#ffffff" />
+          </div>
+          <div class="color-input-group">
+            <label>Text</label>
+            <input type="color" id="textColor" value="#000000" />
+          </div>
+        </div>
+      </div>
+      
+      <div class="editor-section">
+        <label>Spacing (px)</label>
+        <div class="spacing-group">
+          <div>
+            <label>Padding</label>
+            <input type="number" id="padding" value="20" />
+          </div>
+          <div>
+            <label>Margin</label>
+            <input type="number" id="margin" value="20" />
+          </div>
+        </div>
+      </div>
+      
+      <div class="btn-group">
+        <button id="updateSectionBtn">Update</button>
+        <button id="deleteSectionBtn" class="delete">Delete</button>
+      </div>
+    `;
+    
+    document.getElementById('editorContainer').innerHTML = html;
+    
+    document.getElementById('cssToggle').addEventListener('change', (e) => {
+      document.getElementById('cssEditorContent').classList.toggle('open', e.target.checked);
+    });
+    
+    document.getElementById('updateSectionBtn').addEventListener('click', () => this.updateSection());
+    document.getElementById('deleteSectionBtn').addEventListener('click', () => {
+      if (confirm('Delete this section?')) {
+        this.deleteSection(this.selectedSection.id);
+      }
+    });
+  },
+  
+  getCustomCSS() {
+    const match = this.selectedSection.element.match(/<style[^>]*>([\s\S]*?)<\/style>/);
+    return match ? match[1] : '';
+  },
+  
+  updateSection() {
+    if (!this.selectedSection) return;
+    
+    const parser = new DOMParser();
+    let doc = parser.parseFromString(this.selectedSection.element, 'text/html');
+    
+    document.querySelectorAll('.heading-input').forEach(input => {
+      const idx = input.dataset.idx;
+      const headings = doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
+      if (headings[idx]) headings[idx].textContent = input.value;
+    });
+    
+    document.querySelectorAll('.para-input').forEach(input => {
+      const idx = input.dataset.idx;
+      const paragraphs = doc.querySelectorAll('p');
+      if (paragraphs[idx]) paragraphs[idx].textContent = input.value;
+    });
+    
+    document.querySelectorAll('.img-input').forEach(input => {
+      const idx = input.dataset.idx;
+      const images = doc.querySelectorAll('img');
+      if (images[idx]) images[idx].src = input.value;
+    });
+    
+    const sectionEl = doc.querySelector('section') || doc.body;
+    const bgColor = document.getElementById('bgColor').value;
+    const textColor = document.getElementById('textColor').value;
+    const padding = document.getElementById('padding').value;
+    const margin = document.getElementById('margin').value;
+    
+    sectionEl.style.backgroundColor = bgColor;
+    sectionEl.style.color = textColor;
+    sectionEl.style.padding = padding + 'px';
+    sectionEl.style.margin = margin + 'px';
+    
+    const customCSS = document.getElementById('customCSS')?.value;
+    if (customCSS) {
+      let styleTag = doc.querySelector('style');
+      if (!styleTag) {
+        styleTag = doc.createElement('style');
+        doc.head.appendChild(styleTag);
+      }
+      styleTag.textContent = customCSS;
+    }
+    
+    this.selectedSection.element = doc.documentElement.outerHTML;
+    this.updatePreview();
+  },
+  
+  updatePreview() {
+    const fullHTML = this.buildHTML();
+    document.getElementById('previewFrame').srcdoc = fullHTML;
+  },
+  
+  buildHTML() {
+    const head = this.html.match(/<head[^>]*>[\s\S]*?<\/head>/i)?.[0] || '<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>* { margin: 0; padding: 0; box-sizing: border-box; } body { font-family: sans-serif; }</style></head>';
+    const body = this.sections.map(s => s.element).join('\n');
+    return `<!DOCTYPE html><html>${head}<body>${body}</body></html>`;
+  },
+  
+  getBlankHTML() {
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Site</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: sans-serif; background: #f5f5f5; }
+    section { padding: 4rem 2rem; max-width: 1200px; margin: 0 auto; }
+    h1 { font-size: 2.5rem; margin-bottom: 1rem; }
+    p { font-size: 1rem; line-height: 1.6; margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+  <section id="hero">
+    <h1>Welcome to Your Site</h1>
+    <p>Click the Templates tab to add new sections, or use the editor to modify this one.</p>
+  </section>
+</body>
+</html>`;
+  }
+};
+
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    document.getElementById('sectionsTab').style.display = tab === 'sections' ? 'block' : 'none';
+    document.getElementById('templatesTab').style.display = tab === 'templates' ? 'block' : 'none';
+  });
+});
+
+// Modal
+document.getElementById('modalAddBtn').addEventListener('click', () => {
+  builder.addTemplate();
+});
+document.getElementById('modalCloseBtn').addEventListener('click', () => {
+  document.getElementById('templateModal').classList.remove('open');
+});
+document.getElementById('templateModal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('templateModal')) {
+    document.getElementById('templateModal').classList.remove('open');
+  }
+});
+
+// Upload button
+document.getElementById('uploadBtn').addEventListener('click', () => {
+  document.getElementById('fileInput').click();
+});
+
+document.getElementById('fileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    builder.html = event.target.result;
+    builder.parseHTML();
+    builder.renderSidebar();
+    builder.updatePreview();
+    alert('HTML file loaded successfully!');
+  };
+  reader.onerror = () => {
+    alert('Error reading file');
+  };
+  reader.readAsText(file);
+});
+
+// Download
+document.getElementById('downloadBtn').addEventListener('click', () => {
+  const html = builder.buildHTML();
+  const element = document.createElement('a');
+  element.setAttribute('href', 'data:text/html;charset=utf-8,' + encodeURIComponent(html));
+  element.setAttribute('download', 'site.html');
+  element.style.display = 'none';
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
+});
+
+// Init
+builder.init();
+</script>
+
+</body>
+</html>
