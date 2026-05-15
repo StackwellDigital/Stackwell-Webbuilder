@@ -836,9 +836,56 @@ const builder = {
   },
   
   buildHTML() {
-    const head = this.html.match(/<head[^>]*>[\s\S]*?<\/head>/i)?.[0] || '<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>* { margin: 0; padding: 0; box-sizing: border-box; } body { font-family: sans-serif; }</style></head>';
-    const body = this.sections.map(s => s.element).join('\n');
-    return `<!DOCTYPE html><html>${head}<body>${body}</body></html>`;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(this.html, 'text/html');
+    
+    // Preserve the entire head
+    const head = doc.querySelector('head');
+    const headHTML = head ? head.outerHTML : '<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>';
+    
+    // Get all body content before first section
+    const body = doc.querySelector('body');
+    let bodyStart = '';
+    if (body) {
+      let foundFirstSection = false;
+      for (let child of body.childNodes) {
+        if (child.nodeType === 1 && child.tagName === 'SECTION') {
+          foundFirstSection = true;
+          break;
+        }
+        if (child.nodeType === 1) {
+          bodyStart += child.outerHTML;
+        } else if (child.nodeType === 3 && child.textContent.trim()) {
+          bodyStart += child.textContent;
+        }
+      }
+    }
+    
+    // Build sections
+    const sectionsHTML = this.sections.map(s => s.element).join('\n');
+    
+    // Get any content after last section
+    let bodyEnd = '';
+    if (body) {
+      let lastSectionFound = false;
+      const childrenArray = Array.from(body.childNodes);
+      for (let i = childrenArray.length - 1; i >= 0; i--) {
+        const child = childrenArray[i];
+        if (child.nodeType === 1 && child.tagName === 'SECTION') {
+          lastSectionFound = true;
+          break;
+        }
+        if (lastSectionFound) {
+          if (child.nodeType === 1) {
+            bodyEnd = child.outerHTML + bodyEnd;
+          } else if (child.nodeType === 3 && child.textContent.trim()) {
+            bodyEnd = child.textContent + bodyEnd;
+          }
+        }
+      }
+    }
+    
+    return `<!DOCTYPE html><html>${headHTML}<body>${bodyStart}${sectionsHTML}${bodyEnd}</body></html>`;
   },
   
   getBlankHTML() {
